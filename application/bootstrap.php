@@ -1,5 +1,16 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
+//DIGI3 Bootstrap setup
+$settings = array(
+	'base_url' => '/',
+	'profiling' => TRUE,
+	'caching' => TRUE,
+	'errors' => FALSE,
+	'index_file' => FALSE,
+);
+
+//DIGI3 Bootstrap setup end
+
 //-- Environment setup --------------------------------------------------------
 
 /**
@@ -57,14 +68,15 @@ if (isset($_SERVER['KOHANA_ENV']))
  * - boolean  profile     enable or disable internal profiling               TRUE
  * - boolean  caching     enable or disable internal caching                 FALSE
  */
-Kohana::init(array(
-	'base_url'   => '/preview/kohana/',
-));
+//DIGI3 move array to $settings
+Kohana::init($settings);
 
 /**
  * Attach the file write to logging. Multiple writers are supported.
  */
-Kohana::$log->attach(new Kohana_Log_File(APPPATH.'logs'));
+//Kohana::$log->attach(new Kohana_Log_File(APPPATH.'logs'));
+//DIGI3 update the log file following our format
+Kohana::$log->attach(new Kohana_Log_File(Kohana::config(Kohana::$environment.'.logs.path')));
 
 /**
  * Attach a file reader to config. Multiple readers are supported.
