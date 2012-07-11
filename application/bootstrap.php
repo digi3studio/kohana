@@ -47,12 +47,12 @@ $settings = array(
 //override default settings
 switch (Kohana::$environment) {
 	case Kohana::DEVELOPMENT:
-		$settings['base_url'] = '/www/moet-web/';
+		$settings['base_url'] = '/www/xxx-web/';
 		ini_set('display_errors', 1);
 		error_reporting(E_ALL);
 		break;
 	case Kohana::TESTING:
-        $settings['base_url'] = '/preview/moet/birthday/web/';
+        $settings['base_url'] = '/preview/kohana/';
 		ini_set('display_errors', 1);
 		error_reporting(E_ALL);
 		break;
@@ -61,6 +61,7 @@ switch (Kohana::$environment) {
         $settings['base_url'] = '/';
 		break;
 }
+
 //fixes for the override
 //override the $settings, the register_globals conflict with the core(system/classes/kohana/core.php), init()
 if (ini_get('register_globals')){
@@ -136,9 +137,9 @@ Kohana::init($settings);
 /**
  * Attach the file write to logging. Multiple writers are supported.
  */
-//Kohana::$log->attach(new Kohana_Log_File(APPPATH.'logs'));
 //DIGI3 update the log file following our format
-Kohana::$log->attach(new Kohana_Log_File(Kohana::config(Kohana::$environment.'.logs.path')));
+//Kohana::$log->attach(new Kohana_Log_File(Kohana::config(Kohana::$environment.'.logs.path')));
+Kohana::$log->attach(new Kohana_Log_File(APPPATH.'logs'));
 
 /**
  * Attach a file reader to config. Multiple readers are supported.
@@ -149,7 +150,7 @@ Kohana::$config->attach(new Kohana_Config_File);
  * Enable modules. Modules are referenced by a relative or absolute path.
  */
 Kohana::modules(array(
-	 'auth'       => MODPATH.'auth',       // Basic authentication
+	// 'auth'       => MODPATH.'auth',       // Basic authentication
 	// 'cache'      => MODPATH.'cache',      // Caching with multiple backends
 	// 'codebench'  => MODPATH.'codebench',  // Benchmarking tool
 	// 'database'   => MODPATH.'database',   // Database access
@@ -159,7 +160,7 @@ Kohana::modules(array(
 	// 'pagination' => MODPATH.'pagination', // Paging of results
 	// 'unittest'   => MODPATH.'unittest',   // Unit testing
 	// 'userguide'  => MODPATH.'userguide',  // User guide and API documentation
-	'd3admin' => MODPATH.'d3admin',
+	// 'd3admin'    => MODPATH.'d3admin',
 	));
 
 /**
