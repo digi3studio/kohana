@@ -1,6 +1,41 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 //DIGI3 Bootstrap setup
+$domains = array(
+  'development' => 'localhost',
+  'testing' => 'digi3studio.com',
+  'production' => 'moet-birthday.com',
+);
+
+/*auto select environment setting */
+switch(PHP_SAPI){
+  case 'cli':
+    spl_autoload_register(array('Kohana', 'auto_load'));
+    $options = CLI::options('environment');
+    if(!array_key_exists('environment', $options)){
+      print PHP_EOL.'Usage: php index.php --uri=cron/<action> --environment=<environment> [options]'.PHP_EOL;
+      print PHP_EOL.'--environment        development, testing or production'.PHP_EOL.PHP_EOL;
+      exit();
+    }
+    //create the server enviornment
+    $options['environment'] = strtolower($options['environment']);
+    $_SERVER['SERVER_NAME'] = $domains[$options['environment']];
+    $_SERVER['HTTP_HOST'] = $_SERVER['SERVER_NAME'];
+    $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+    break;
+  default:
+    break;
+}
+
+foreach($domains as $i => $j){
+  if(strpos($_SERVER['SERVER_NAME'], $j) !== FALSE){
+    Kohana::$environment = $i;
+    break;
+  }
+}
+/* end auto select enviroment setting */
+
+//default settings
 $settings = array(
 	'base_url' => '/',
 	'profiling' => TRUE,
@@ -8,6 +43,33 @@ $settings = array(
 	'errors' => FALSE,
 	'index_file' => FALSE,
 );
+
+//override default settings
+switch (Kohana::$environment) {
+	case Kohana::DEVELOPMENT:
+		$settings['base_url'] = '/www/moet-web/';
+		ini_set('display_errors', 1);
+		error_reporting(E_ALL);
+		break;
+	case Kohana::TESTING:
+        $settings['base_url'] = '/preview/moet/birthday/web/';
+		ini_set('display_errors', 1);
+		error_reporting(E_ALL);
+		break;
+	case Kohana::PRODUCTION:
+	default:
+        $settings['base_url'] = '/';
+		break;
+}
+//fixes for the override
+//override the $settings, the register_globals conflict with the core(system/classes/kohana/core.php), init()
+if (ini_get('register_globals')){
+	ini_set("register_globals", 0);
+	Kohana::$base_url = rtrim($settings['base_url'], '/').'/';//copied from core.php, if register_global, the core.php can't set the base_url correctly
+}
+
+//some server will have mb function set as ISO-8859-1 by default
+mb_internal_encoding('UTF-8');
 
 //DIGI3 Bootstrap setup end
 
