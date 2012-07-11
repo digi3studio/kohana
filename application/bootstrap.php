@@ -62,7 +62,7 @@ switch (Kohana::$environment) {
 		break;
 }
 
-//fixes for the override
+//fixes for the page cannot display with default route.
 //override the $settings, the register_globals conflict with the core(system/classes/kohana/core.php), init()
 if (ini_get('register_globals')){
 	ini_set("register_globals", 0);
@@ -173,14 +173,33 @@ Route::set('default', '(<controller>(/<action>(/<id>)))')
 		'action'     => 'index',
 	));
 
-if ( ! defined('SUPPRESS_REQUEST'))
-{
-	/**
-	 * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
-	 * If no source is specified, the URI will be automatically detected.
-	 */
-	echo Request::instance()
-		->execute()
+if (defined('SUPPRESS_REQUEST'))exit();
+/**
+ * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
+ * If no source is specified, the URI will be automatically detected.
+ */
+//if (Kohana::$profiling === TRUE){$benchmark = Profiler::start('Page loading', __FUNCTION__);}
+
+try{
+  $request = Request::instance();
+}catch(Kohana_Request_Exception $e){
+  //The Request cannot construct at all, it is a 404 error
+  Helper_Bootstrap::handle_404();
+}
+Helper_Language::set();
+try{
+	//the response is correctly loaded.
+	//option1, base/member/load/7
+	//option4, base/hk/arthk11/page2
+	echo $request->execute()
 		->send_headers()
 		->response;
+	if((!Kohana::$is_cli) && strtolower(Request::instance()->param('format')) == 'php'){
+		print PHP_EOL.'<!--- using Controller '.Request::instance()->controller.' and action '.Request::instance()->action.' --->';
+	}
+}catch(ReflectionException $e){
+	//controller not found, guess another controller like /asia_en/controller
+	Helper_Bootstrap::Controller_Exception();
+}catch(Kohana_Request_Exception $e){
+	Helper_Bootstrap::Controller_Exception();
 }
