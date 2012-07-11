@@ -9,3 +9,5 @@ kohana_release
 nbproject
 *.komodoproject
 build
+
+/.idea
