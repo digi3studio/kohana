@@ -31,3 +31,6 @@
 [submodule "modules/oauth"]
 	path = modules/oauth
 	url = http://github.com/kohana/oauth.git
+[submodule "modules/d3admin"]
+	path = modules/d3admin
+	url = git@github.com:digi3studio/d3admin.git
