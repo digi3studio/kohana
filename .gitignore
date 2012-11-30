@@ -14,3 +14,4 @@ build
 /application/classes/controller
 /application/views
 /media
+/application/config
