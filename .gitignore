@@ -11,3 +11,6 @@ nbproject
 build
 
 /.idea
+/application/classes/controller
+/application/views
+/media

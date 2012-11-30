@@ -3,8 +3,8 @@
 //DIGI3 Bootstrap setup
 $domains = array(
   'development' => 'localhost',
-  'testing' => 'digi3studio.com',
-  'production' => 'moet-birthday.com',
+  'testing' 	=> 'digi3studio.com',
+  'production' 	=> 'moet-birthday.com',
 );
 
 /*auto select environment setting */
@@ -20,7 +20,7 @@ switch(PHP_SAPI){
     //create the server enviornment
     $options['environment'] = strtolower($options['environment']);
     $_SERVER['SERVER_NAME'] = $domains[$options['environment']];
-    $_SERVER['HTTP_HOST'] = $_SERVER['SERVER_NAME'];
+    $_SERVER['HTTP_HOST'] 	= $_SERVER['SERVER_NAME'];
     $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
     break;
   default:
@@ -38,8 +38,8 @@ foreach($domains as $i => $j){
 //default settings
 $settings = array(
 	'base_url' => '/',
-	'profiling' => TRUE,
-	'caching' => TRUE,
+	'profiling' => FALSE,
+	'caching' => FALSE,
 	'errors' => FALSE,
 	'index_file' => FALSE,
 );
@@ -47,7 +47,7 @@ $settings = array(
 //override default settings
 switch (Kohana::$environment) {
 	case Kohana::DEVELOPMENT:
-		$settings['base_url'] = '/www/xxx-web/';
+		$settings['base_url'] = '/kohana/';
 		ini_set('display_errors', 1);
 		error_reporting(E_ALL);
 		break;
@@ -59,6 +59,7 @@ switch (Kohana::$environment) {
 	case Kohana::PRODUCTION:
 	default:
         $settings['base_url'] = '/';
+        $settings['caching'] = TRUE;
 		break;
 }
 
@@ -150,43 +151,59 @@ Kohana::$config->attach(new Kohana_Config_File);
  * Enable modules. Modules are referenced by a relative or absolute path.
  */
 Kohana::modules(array(
+//	'database'		=> MODPATH.'database',   // Database access
+//	'orm'			=> MODPATH.'orm',        // Object Relationship Mapping
+	'd3web'			=> MODPATH.'d3web',
+
 	// 'auth'       => MODPATH.'auth',       // Basic authentication
 	// 'cache'      => MODPATH.'cache',      // Caching with multiple backends
 	// 'codebench'  => MODPATH.'codebench',  // Benchmarking tool
-	// 'database'   => MODPATH.'database',   // Database access
 	// 'image'      => MODPATH.'image',      // Image manipulation
-	// 'orm'        => MODPATH.'orm',        // Object Relationship Mapping
 	// 'oauth'      => MODPATH.'oauth',      // OAuth authentication
 	// 'pagination' => MODPATH.'pagination', // Paging of results
 	// 'unittest'   => MODPATH.'unittest',   // Unit testing
 	// 'userguide'  => MODPATH.'userguide',  // User guide and API documentation
-	// 'd3admin'    => MODPATH.'d3admin',
-	));
+	//   'd3admin'    => MODPATH.'d3admin',
+));
 
 /**
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-Route::set('default', '(<controller>(/<action>(/<id>)))')
+Route::set('default', '(<controller>(/<action>(/<id>)))(.<format>)')
 	->defaults(array(
 		'controller' => 'welcome',
 		'action'     => 'index',
+		'format'	 => 'php',
 	));
 
-if (defined('SUPPRESS_REQUEST'))exit();
+//if (defined('SUPPRESS_REQUEST'))exit();
 /**
  * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
  * If no source is specified, the URI will be automatically detected.
  */
 //if (Kohana::$profiling === TRUE){$benchmark = Profiler::start('Page loading', __FUNCTION__);}
 
+//require d3web;
+
 try{
-  $request = Request::instance();
+	$request = Request::instance();
+
+	//configurable auto load static files.
+	//if enabled auto load static file and the file is found
+	//will not use the controller
+	if(
+		Kohana::config(Kohana::$environment.'.auto_load_static_file')&&
+		Helper_Bootstrap::instance()->handle_static_content($request)
+	)exit();
+
 }catch(Kohana_Request_Exception $e){
-  //The Request cannot construct at all, it is a 404 error
-  Helper_Bootstrap::handle_404();
+	//The Request cannot construct at all, it is a 404 error
+	Helper_Bootstrap::instance()->handle_404();
+	exit();
 }
-Helper_Language::set();
+
+//Helper_Language::set();
 try{
 	//the response is correctly loaded.
 	//option1, base/member/load/7
@@ -194,12 +211,12 @@ try{
 	echo $request->execute()
 		->send_headers()
 		->response;
-	if((!Kohana::$is_cli) && strtolower(Request::instance()->param('format')) == 'php'){
-		print PHP_EOL.'<!--- using Controller '.Request::instance()->controller.' and action '.Request::instance()->action.' --->';
+
+
+	if((!Kohana::$is_cli) && strtolower($request->param('format')) == 'php'){
+		print PHP_EOL.'<!--- using Controller '.$request->controller.' and action '.$request->action.' --->';
 	}
 }catch(ReflectionException $e){
 	//controller not found, guess another controller like /asia_en/controller
-	Helper_Bootstrap::Controller_Exception();
-}catch(Kohana_Request_Exception $e){
-	Helper_Bootstrap::Controller_Exception();
+	Helper_Bootstrap::instance()->use_default_controller();
 }
